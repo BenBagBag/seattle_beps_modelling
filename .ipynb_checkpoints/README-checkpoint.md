@@ -8,10 +8,10 @@ The original model was built in Excel by RMI. This repo corrects some calculatio
 
 Available in `data/input_data`:
 
-- `energy_emissions.csv`: a table of predicted emissions factors for electric, gas, and steam power in Seattle, year by year until 2050. This was predicted by calculating the rate of decline given by the city and assuming that will remain steady.
-- `jan_proposal_emissions_targets.csv` and `june_proposal_emissions_targets.csv`: the timeline for when each building type/size must meet specific GHGI targets. These are the city's proposals in January and June of 2023.
+- `energy_emissions.csv`: a table of predicted emissions factors for electric, gas, and steam power in Seattle, year by year until 2050. This was predicted by calculating the rate of decline given by the city and assuming that will remain steady. [source needed]
+- `jan_proposal_emissions_targets.csv` and `june_proposal_emissions_targets.csv`: the timeline for when each building type/size must meet specific GHGI targets. These are the city's proposals in January and June of 2023. [sources needed]
 - `rmi_building_analysis_with_new_col_names.csv`: RMI's original building data, composed of a list of buildings/emissions from the City of Seattle (not identical to what is found in the public dataset on data.seattle.gov), plus calculations for square footage.
-- `Reproducing RMI building data cleaning`: this folder is a Jupyter notebook and CSV's associated with reproducing RMI's analysis of buildings' square footage and usage. We get drastically different numbers when we use this data compared to the `rmi_building_analysis_with_new_col_names` data. We know there's a discrepancy between the data the City makes publicly available vs. what they gave to RMI. There could also be mistakes in this data cleaning/processing. This needs more investigation, which we'll have to do if we want to use the 2019 public City data as our source for building data.
+- `Reproducing RMI building data cleaning`: this folder is a Jupyter notebook and CSV's associated with reproducing RMI's analysis of buildings' square footage and usage. We get drastically different numbers when we use this data compared to the `rmi_building_analysis_with_new_col_names` data. We know there's a discrepancy between the data the City makes publicly available vs. what they gave to RMI. There could also be mistakes in this data cleaning/processing. This needs more investigation, which we'll have to do if we want to use the 2019 public City data as our source for building data. [source for city data needed]
 
 ## Model
 
