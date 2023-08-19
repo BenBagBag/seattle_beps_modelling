@@ -1,9 +1,0 @@
-BuildingType (City classification),Type (Legislative classification)
-NonResidential,NonResidential
-Nonresidential COS,NonResidential
-Nonresidential WA,NonResidential
-Multifamily LR (1-4),Multifamily
-Multifamily MR (5-9),Multifamily
-Multifamily HR (10+),Multifamily
-SPS-District K-12,Campus
-Campus,Campus
