@@ -34,6 +34,11 @@ class BaselineBEPSModel:
         self._load_building_data()
         self._load_emissions_data()
 
+    # Cleaning data
+
+    def _filter_out_small_buildings(self):
+        self.building_data = self.building_data[self.building_data['sq_ft_classification'] != 'F']
+
     # Calculating the baseline model
     
     def _find_ghgi_standard(self, year, building_type, sq_ft_class):
@@ -45,7 +50,7 @@ class BaselineBEPSModel:
             return 0
 
         row = self.timeline[(self.timeline['year'] == year) & (self.timeline['sq_ft_classification'] == sq_ft_class) & (self.timeline['building_type'] == building_type)]
-        return row.iloc[0]['ghgi'] 
+        return row.iloc[0]['ghgi'] if len(row) > 0 else np.nan
     
     def _get_expected_baseline(self, building, year):
         '''
@@ -118,6 +123,7 @@ class BaselineBEPSModel:
 
     def _calculate_baseline_model_without_saving(self, start_year, end_year):
         self._load_input_data()
+        self._filter_out_small_buildings()
         
         baseline_building_info = pd.DataFrame(columns=['OSEBuildingID', 'BuildingName', 'Total GFA for Policy', 'sq_ft_classification'])
         scen_calcs = self._fill_in_expected_baselines(start_year, end_year, self.building_data, baseline_building_info)
