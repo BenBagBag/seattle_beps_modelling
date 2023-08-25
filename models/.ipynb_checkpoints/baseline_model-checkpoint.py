@@ -39,6 +39,14 @@ class BaselineBEPSModel:
     def _filter_out_small_buildings(self):
         self.building_data = self.building_data[self.building_data['sq_ft_classification'] != 'F']
 
+    def _filter_out_buildings_without_energy_use(self):
+        self.building_data[['Electricity(kBtu)', 'SteamUse(kBtu)', 'NaturalGas(kBtu)']] = self.building_data[['Electricity(kBtu)', 'SteamUse(kBtu)', 'NaturalGas(kBtu)']].fillna(0)
+        self.building_data = self.building_data[(self.building_data['Electricity(kBtu)'] > 0) | (self.building_data['NaturalGas(kBtu)'] > 0) | (self.building_data['SteamUse(kBtu)'] > 0)]
+
+    def _clean_data(self):
+        self._filter_out_small_buildings()
+        self._filter_out_buildings_without_energy_use()
+
     # Calculating the baseline model
     
     def _find_ghgi_standard(self, year, building_type, sq_ft_class):
@@ -123,7 +131,7 @@ class BaselineBEPSModel:
 
     def _calculate_baseline_model_without_saving(self, start_year, end_year):
         self._load_input_data()
-        self._filter_out_small_buildings()
+        self._clean_data()
         
         baseline_building_info = pd.DataFrame(columns=['OSEBuildingID', 'BuildingName', 'Total GFA for Policy', 'sq_ft_classification'])
         scen_calcs = self._fill_in_expected_baselines(start_year, end_year, self.building_data, baseline_building_info)
