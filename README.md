@@ -2,7 +2,7 @@
 
 This repo models emissions from large (>20k sq ft) Seattle buildings between 2027 and 2050 for different benchmark proposals for BEPS.
 
-The original model was built in Excel by RMI. This repo corrects some calculation errors in that model and also allows the user to model a new scenario by writing a single new function and then running the model. See below for instructions.
+The original model was built in Google Sheets by RMI. This repo corrects some calculation errors in that model and also includes expanded models. See below.
 
 ## Input data
 
