@@ -3,12 +3,18 @@ import shutil
 
 from baseline_model import BaselineBEPSModel
 
-
+# Binary search tree algorithm to determine what % reduction in target emissions is needed to hit a specific emissions target
+# Takes an emissions target, a year by which that target needs to be met, and the standard input data for the BaselineBEPSModel
 # NB: this file is not currently used in the repo
 
 # method to create temporary file for emissions
 # percent is % of original baseline, not percent reduction of original baseline
 def create_temp_emissions_timeline_file(percent, timeline_path):
+    '''
+        Method to create temporary file for emissions
+        Percent is % of original baseline, not percent reduction of original baseline
+        E.g., if you want to reduce the baseline by 20%, percent would be 80
+    '''
     timeline = pd.read_csv(timeline_path)
     timeline['ghgi'] = timeline['ghgi'] * (percent/100.0)
     file_name = f'tmp/timeline_{percent}_percent_of_policy.csv'
