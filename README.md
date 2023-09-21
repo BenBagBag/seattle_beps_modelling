@@ -1,8 +1,10 @@
 # Models to Predict Emissions between 2027-2050 with BEPS
 
-This repo models emissions from large (>20k sq ft) Seattle buildings between 2027 and 2050 for different benchmark proposals for BEPS.
+This repository models emissions from large (>20k sq ft) Seattle buildings between 2027 and 2050 for Seattle's proposed [Benchmark Emissions Performance Standards](https://www.seattle.gov/environment/climate-change/buildings-and-energy/building-performance-standards) (BEPS) legislation.
 
-The original model was built in Google Sheets by RMI. This repo corrects some calculation errors in that model and also includes expanded models. See below.
+The original base model was built in Google Sheets by [RMI](https://rmi.org/). The models in this repository, written by @BenBagBag on behalf of [350 Seattle](https://350seattle.org/), correct some calculation errors in that model and also represent expanded models based on proposed amendments. 
+
+**Note**: This is a public repository to show our methodology. It is not a complete representation of all the modelling and calculations done for 350 Seattle. If you have questions about specific models or numbers, please [email me](mailto:isaac.cowhey@gmail.com).
 
 ## Input data
 
@@ -29,4 +31,4 @@ Found in `models/alternative_compliance_model.py`. This class models expected em
 1. Install the requirements: `$ pip install -r requirements.txt`
 2. Start a Jupyter notebook (included in the requirements.txt file): `$ jupyter notebook`
 3. This will open a UI in your default browser. You can then explore files and run code. You can go to `Help` -> `User Interface Tour` if you're not familiar with Jupyter notebooks.
-4. The Baseline Model, with its results, are in `models/Jan and June Proposals.ipynb`. 
+4. An example of how to use the Baseline Model is in `models/Jan and June Proposals.ipynb`. 
