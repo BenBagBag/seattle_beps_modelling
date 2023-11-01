@@ -1,9 +1,5 @@
 # Model for a proposal with exceptions for campuses, highly polluting buildings, and unclassified buildings
 
-############################################################################
-# NB: Under construction and not fully tested, use at your own discretion. #
-############################################################################
-
 # In this proposed ammendment, buildings can use the alternate compliance for all compliance periods if the building is:
 
 # - A building portfolio, district campus, or connected buildings
@@ -37,10 +33,10 @@ from baseline_model import BaselineBEPSModel
 class AlternativeComplianceModel(BaselineBEPSModel):
     def __init__(self, emissions_path, timeline_path, building_data_path, fine_years, fine_per_sqft):
         BaselineBEPSModel.__init__(self, emissions_path, timeline_path, building_data_path, fine_years, fine_per_sqft)
-        BaselineBEPSModel._load_input_data()
-        BaselineBEPSModel._clean_data()
+        BaselineBEPSModel._load_input_data(self)
+        BaselineBEPSModel._clean_data(self)
 
-    def _eligible_for_exception_1(building_type):
+    def _eligible_for_exception_1(self, building_type):
         '''
             Determine if a building is eligible to use alternative compliance because it is part of a campus or building portfolio.
         '''
@@ -56,7 +52,7 @@ class AlternativeComplianceModel(BaselineBEPSModel):
         
         return False
 
-    def _eligible_for_exception_2(building, building_type):
+    def _eligible_for_exception_2(self, building, building_type):
         '''
             Determine if a building is eligible to use alternative compliance because >50% of its square footage has a use type not covered by the legislation.
         '''
@@ -69,66 +65,71 @@ class AlternativeComplianceModel(BaselineBEPSModel):
         # index of the largest use type that is 'Other' (distinct from NaN)
         is_other = list(building[['LargestPropertyUseType OSE', 'SecondLargestPropertyUseType OSE', 'ThirdLargestPropertyUseType OSE']]).index('Other') if 'Other' in list(building[['LargestPropertyUseType OSE', 'SecondLargestPropertyUseType OSE', 'ThirdLargestPropertyUseType OSE']]) else -1
         
-        gfa_cols = ['percent_sqft_1st', 'percent_sqft_2nd', 'percent_sqft_3rd']
-        building_data_row = building_data[building_data['OSEBuildingID'] == building['OSEBuildingID']].iloc[0]
+        gfa_cols = ['LargestPropertyUseType Percent GFA', 'SecondLargestPropertyUseType Percent GFA', 'ThirdLargestPropertyUseType Percent GFA']
+        building_data_row = self.building_data[self.building_data['OSEBuildingID'] == building['OSEBuildingID']].iloc[0]
         
         if is_nan > -1 and (building_data_row[gfa_cols[is_nan]] > .5 or building_data_row[gfa_cols[is_other]] > .5):
             return True
         
         return False
 
-    def _get_stand_benchmark_2035(building, baseline):
+    def _get_stand_benchmark_2035(self, building, baseline):
         '''
             Get the City's standard benchmark GHGI for a specific building.
         '''
-        benchmarks_2035 = self.timeline.loc['2031-2035']
+
         building_data_row = self.building_data[self.building_data['OSEBuildingID'] == building['OSEBuildingID']].iloc[0]
+
+        def building_2035_benchmark(building_type, sq_ft_classification, baseline):
+            benchmark = self.timeline[(self.timeline['year'] == 2035) & (self.timeline['building_type'] == building_type) & (self.timeline['sq_ft_classification'] == sq_ft_classification)].iloc[0]['ghgi']
+            return benchmark if not np.isnan(benchmark) else baseline
         
         if building['LargestPropertyUseType OSE'] == 'nan' or pd.isna(building['LargestPropertyUseType OSE']):
-            largest_ghgit = building_data_row['percent_sqft_1st'] * baseline
+            largest_ghgit = building_data_row['LargestPropertyUseType Percent GFA'] * baseline
         else:
-            largest_ghgit = building_data_row['percent_sqft_1st'] * benchmarks_2035[building['LargestPropertyUseType OSE']]
+            largest_ghgit = building_data_row['LargestPropertyUseType Percent GFA'] * building_2035_benchmark(building_data_row['LargestPropertyUseType OSE'], building_data_row['sq_ft_classification'], baseline)
             
         if building['SecondLargestPropertyUseType OSE'] == 'nan' or pd.isna(building['SecondLargestPropertyUseType OSE']):
-            second_ghgit = building_data_row['percent_sqft_2nd'] * baseline
+            second_ghgit = building_data_row['SecondLargestPropertyUseType Percent GFA'] * baseline
         else:
-            second_ghgit = building_data_row['percent_sqft_2nd'] * benchmarks_2035[building['SecondLargestPropertyUseType OSE']]
+            second_ghgit = building_data_row['SecondLargestPropertyUseType Percent GFA'] * building_2035_benchmark(building_data_row['SecondLargestPropertyUseType OSE'], building_data_row['sq_ft_classification'], baseline)
         
         if building['ThirdLargestPropertyUseType OSE'] == 'nan' or pd.isna(building['ThirdLargestPropertyUseType OSE']):
-            third_ghgit = building_data_row['percent_sqft_3rd'] * baseline
+            third_ghgit = building_data_row['ThirdLargestPropertyUseType Percent GFA'] * baseline
         else:
-            third_ghgit = building_data_row['percent_sqft_3rd'] * benchmarks_2035[building['ThirdLargestPropertyUseType OSE']]
+            third_ghgit = building_data_row['ThirdLargestPropertyUseType Percent GFA'] * building_2035_benchmark(building_data_row['ThirdLargestPropertyUseType OSE'], building_data_row['sq_ft_classification'], baseline)
         
         return largest_ghgit + second_ghgit + third_ghgit
         
-    def _eligible_for_exception_3(building):
+    def _eligible_for_exception_3(self, building):
         '''
             Determine if a building is elibigle to use alternative compliance because it is a covered building that has a baseline GHGI greater than 3.5 times the covered building’s standard GHGIT for the 2031-2035 compliance interval
         '''
     
         building_data_row = self.building_data[self.building_data['OSEBuildingID'] == building['OSEBuildingID']].iloc[0]
+        # error here where it's not finding the row with the correct year
+        # also happening for 2027 year
+        # fix this
         baseline_2035 = self.scenario_results[(self.scenario_results['year'] == 2035) & (self.scenario_results['OSEBuildingID'] == building['OSEBuildingID'])].iloc[0]['expected_baseline_ghgi']
         
-        ghgit_2035 = self._get_stand_benchmark_2035(building, building_data, baseline_2035)
+        ghgit_2035 = self._get_stand_benchmark_2035(building, baseline_2035)
         baseline_ghgi = self.scenario_results[(self.scenario_results['year'] == 2027) & (self.scenario_results['OSEBuildingID'] == building['OSEBuildingID'])].iloc[0]['expected_baseline_ghgi']
         
         return baseline_ghgi > ghgit_2035 * 3.5
 
-    def _can_use_alternative_ghgit(building):
-        building_type = self.building_data[self.building_data['OSEBuildingID'] == building['OSEBuildingID']].iloc[0]['Type_of_Bulding']
+    def _can_use_alternative_ghgit(self, building):
+        building_type = self.building_data[self.building_data['OSEBuildingID'] == building['OSEBuildingID']].iloc[0]['OSE Building Type']
 
         if self._eligible_for_exception_1(building_type):
             return True
-        
-        if self._eligible_for_exception_2(building, building_type):
+        elif self._eligible_for_exception_2(building, building_type):
             return True
-        
-        if self._eligible_for_exception_3(building):
+        elif self._eligible_for_exception_3(building):
             return True
         
         return False
 
-    def _calc_alt_ghgi(building):
+    def _calc_alt_ghgi(self, building):
         '''
             Calculate expected emissions for a building in a given year under the alternative compliance policy.
             Buildings not eligible for alternative GHGI return NA.
@@ -163,7 +164,7 @@ class AlternativeComplianceModel(BaselineBEPSModel):
             if year > 2045:
                 return 0
 
-    def _choose_compliance(building):
+    def _choose_compliance(self, building):
         '''
             Determine the expected GHGI for a given building in a given year. 
             Buildings eligible for alternative GHGI return the largest allowed GHGI for that building.
@@ -176,14 +177,19 @@ class AlternativeComplianceModel(BaselineBEPSModel):
         else:
             return max(building['compliant_ghgi'], building['alt_ghgi'])
 
-    def _calc_alt_emissions(building):
+    def _calc_alt_emissions(self, building):
         return building['alt_compliance'] * building['Total GFA for Policy']
     
-    def calculate_alternative_compliance_model():
-        scen_calcs = BaselineBEPSModel._calculate_baseline_model_without_saving(start_year, end_year)
+    def calculate_alternative_compliance_model(self, end_year):
+        '''
+        Calculate baseline and alternative compliance emissions for all years in range start_year to end_year.
+        NB: end_year range *must* be greater than 2035
+        '''
+        start_year = 2027
+        scen_calcs = BaselineBEPSModel._calculate_baseline_model_without_saving(self, start_year, end_year)
         self.scenario_results = scen_calcs
 
-        self.building_data['can_use_alternative_compliance'] = self.building_data.apply(lambda building: self.can_use_alternative_ghgit(building), axis=1)
+        self.building_data['can_use_alternative_compliance'] = self.building_data.apply(lambda building: self._can_use_alternative_ghgit(building), axis=1)
 
         self.scenario_results['alternative_ghgi'] = self.scenario_results.apply(lambda building: self._calc_alt_ghgi(building), axis=1)
         self.scenario_results['alternative_compliant_ghgi'] = self.scenario_results.apply(lambda building: self._choose_compliance(building), axis=1)
