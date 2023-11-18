@@ -22,7 +22,7 @@ Found in `models/baseline_model.py`. This class models expected emissions for ea
 
 ### The Alternative Compliance Model
 
-Found in `models/alternative_compliance_model.py`. This class models expected emissions for each building subject to the policy, taking into account a proposed ammendment that will loosen emissions standards for campuses, highly-polluting buildings, and buildings with unclassified use types. The model includes a description of the ammendment. The model is not fully tested, use at your own discretion. 
+Found in `models/alternative_compliance_model.py`. This class models expected emissions for each building subject to the policy, taking into account a proposed ammendment that will loosen emissions standards for campuses, highly-polluting buildings, and buildings with unclassified use types. The model includes a description of the ammendment.
 
 ## Using the model
 

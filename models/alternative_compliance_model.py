@@ -105,11 +105,7 @@ class AlternativeComplianceModel(BaselineBEPSModel):
         '''
             Determine if a building is elibigle to use alternative compliance because it is a covered building that has a baseline GHGI greater than 3.5 times the covered building’s standard GHGIT for the 2031-2035 compliance interval
         '''
-    
-        building_data_row = self.building_data[self.building_data['OSEBuildingID'] == building['OSEBuildingID']].iloc[0]
-        # error here where it's not finding the row with the correct year
-        # also happening for 2027 year
-        # fix this
+
         baseline_2035 = self.scenario_results[(self.scenario_results['year'] == 2035) & (self.scenario_results['OSEBuildingID'] == building['OSEBuildingID'])].iloc[0]['expected_baseline_ghgi']
         
         ghgit_2035 = self._get_stand_benchmark_2035(building, baseline_2035)
@@ -137,13 +133,13 @@ class AlternativeComplianceModel(BaselineBEPSModel):
             Input:
                 building: a row of data for a specific building in a specific year
         '''
-        if not building['can_use_alternative_ghgi']:
+        if not self.building_data[self.building_data['OSEBuildingID'] == building['OSEBuildingID']].iloc[0]['can_use_alternative_compliance']:
             return pd.NA
         
         baseline_ghgi = self.scenario_results[(self.scenario_results['year'] == 2027) & (self.scenario_results['OSEBuildingID'] == building['OSEBuildingID'])].iloc[0]['expected_baseline_ghgi']
         year = building['year']
         
-        if self.building_data[self.building_data['OSEBuildingID'] == building['OSEBuildingID']].iloc[0]['Type_of_Bulding'] == 'Multifamily':
+        if self.building_data[self.building_data['OSEBuildingID'] == building['OSEBuildingID']].iloc[0]['BuildingType'] == 'Multifamily':
             if year < 2031:
                 return baseline_ghgi
             if year >= 2031 and year <= 2035:
@@ -172,13 +168,13 @@ class AlternativeComplianceModel(BaselineBEPSModel):
 
             Input: building: a row of data for a specific building in a specific year
         '''
-        if pd.isna(building['alt_ghgi']):
+        if pd.isna(building['alternative_ghgi']):
             return building['compliant_ghgi']
         else:
-            return max(building['compliant_ghgi'], building['alt_ghgi'])
+            return max(building['compliant_ghgi'], building['alternative_ghgi'])
 
     def _calc_alt_emissions(self, building):
-        return building['alt_compliance'] * building['Total GFA for Policy']
+        return building['alternative_compliant_ghgi'] * building['Total GFA for Policy']
     
     def calculate_alternative_compliance_model(self, end_year):
         '''
@@ -186,8 +182,7 @@ class AlternativeComplianceModel(BaselineBEPSModel):
         NB: end_year range *must* be greater than 2035
         '''
         start_year = 2027
-        scen_calcs = BaselineBEPSModel._calculate_baseline_model_without_saving(self, start_year, end_year)
-        self.scenario_results = scen_calcs
+        BaselineBEPSModel.calculate_baseline_model(self, start_year, end_year)
 
         self.building_data['can_use_alternative_compliance'] = self.building_data.apply(lambda building: self._can_use_alternative_ghgit(building), axis=1)
 

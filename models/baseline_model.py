@@ -85,7 +85,7 @@ class BaselineBEPSModel:
         '''
         for year in range(year_low, year_high + 1):
             temp_df = input_df[['OSEBuildingID', 'BuildingName', 'Total GFA for Policy', 'sq_ft_classification', 'LargestPropertyUseType OSE', 'SecondLargestPropertyUseType OSE', 'ThirdLargestPropertyUseType OSE']]
-            temp_df['year'] = pd.Series([year]*len(temp_df))
+            temp_df['year'] = year
             temp_df['expected_baseline'] = input_df.apply(lambda building: self._get_expected_baseline(building, year), axis=1)
 
             output_df = pd.concat([output_df, temp_df])
